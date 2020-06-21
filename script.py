@@ -54,10 +54,10 @@ def get_seqs(lv):
 def put_seq_and_go(seq):
 	# STATUS: DONE
 	assert type(seq) is str and 1 <= len(seq) <= 70
-	print('$ %-70s ' % seq, end='')
+	print('$ %-70s ' % seq, end='', flush=True)
 	for i in range(3):
-		time.sleep(0.1)
-		print('.', end='')
+		time.sleep(0.3)
+		print('.', end='', flush=True)
 	print(' Go!')
 
 class StopApp(Exception):
@@ -68,6 +68,7 @@ def confirm_stop_app():
 	# STATUS: DONE
 	while True:
 		try:
+			print('')
 			yn = input('Stop app? [y/N] ')
 			if yn.lower() == 'y':
 				raise StopApp()
@@ -121,7 +122,7 @@ def get_printable_stats(stats):
 def print_stats(stats):
 	# STATUS: DONE
 	secs, perc, wpm = get_printable_stats(stats)
-	print('Time:%2d:%02d:%02d -- Correct %: %3d%% -- Words/min: %3d' % (
+	print('Time:%2d:%02d:%02d -- Correct %%: %3d%% -- Words/min: %3d' % (
 		secs / 3600, (secs / 60) % 60, secs % 60, perc * 100, wpm))
 	return secs, perc, wpm
 
