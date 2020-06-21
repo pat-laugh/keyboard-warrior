@@ -3,16 +3,16 @@
 
 import os, time
 
+from alg_err_perc import err_perc
+from alg_lv_success import lv_success
+
 DIR_LVS = './levels/' # STATUS: DONE
 ALL_LVS = os.listdir(DIR_LVS) # STATUS: DONE
 MAX_LVS = len(ALL_LVS) # STATUS: DONE
 
-assert 1 <= MAX_LVS <= 50
+CHARS_PER_WORD = 5
 
-# configs
-NEXT_LV_PERCENTAGE = 95
-NEXT_LV_SPEED = 150
-NEXT_LV_SPEED_INC = 6
+assert 1 <= MAX_LVS <= 50
 
 def is_valid_lv(lv):
 	# STATUS: DONE
@@ -21,50 +21,35 @@ def is_valid_lv(lv):
 class InvalidSeq(Exception):
 	pass
 
-def _check_seq(seq, lv, line_num):
+def _check_seq(seq, lv_file_name, line_num):
+	# STATUS: DONE
 	if not 1 <= len(seq) <= 70:
 		raise InvalidSeq(
-			'level %s: line %s: '
-			'length must be between 1 amd 70' % (
-				lv, line_num + 1
+			'filename "%s": line %s: '
+			'length must be between 1 and 70' % (
+				lv_file_name, line_num + 1
 			)
 		)		
 
 seqs = {}
 def _get_seqs(lv):
 	# THROWS: InvalidSeq
-	# STATUS: TODO
+	# STATUS: DONE
 	lv_file_name = os.path.join(DIR_LVS, ALL_LVS[lv - 1])
 	with open(lv_file_name) as f:
 		s = f.read()
 		lines = s.splitlines()
 		for i, line in enumerate(lines):
-			_check_seq(line, lv, i)
+			_check_seq(line, lv_file_name, i)
 		seqs[lv] = lines
 
 def get_seqs(lv):
+	# THROWS: InvalidSeq
 	# STATUS: DONE
 	assert is_valid_lv(lv)
 	if lv not in seqs:
 		_get_seqs(lv)
 	return seqs[lv]
-
-def error_percentage():
-	pass
-
-def alg_lv_success_simple(err_perc, typing_speed, lv):
-	req_perc, req_speed = 95, (150 + lv * 6)
-	if err_perc >= req_perc and typing_speed >= req_speed:
-		return 1
-	
-	req_perc, req_speed = 90, (150 + lv * 3)
-	if err_perc >= req_perc and typing_speed >= req_speed:
-		return 0
-	
-	return -1
-
-def lv_success(err_perc, typing_speed, lv):
-	return alg_lv_success_simple(err_perc, typing_speed, lv)
 
 def put_seq_and_go(seq):
 	# STATUS: DONE
@@ -75,47 +60,148 @@ def put_seq_and_go(seq):
 		print('.', end='')
 	print(' Go!')
 
-def run_seq(seq):
-	# THROWS: EOFError
+class StopApp(Exception):
+	pass
+
+def confirm_stop_app():
+	# THROWS: StopApp
 	# STATUS: DONE
-	put_seq_and_go(seq)
-	t_start = time.time()
-	s_in = input('> ')
-	t_end = time.time()
-	tt = t_end - t_start
-	return s_in, tt
+	while True:
+		try:
+			yn = input('Stop app? [y/N] ')
+			if yn.lower() == 'y':
+				raise StopApp()
+			elif yn.lower() == 'n' or yn == '':
+				break
+		except (KeyboardInterrupt, EOFError):
+			pass
+	
+def run_seq(seq):
+	# THROWS: StopApp
+	# STATUS: DONE
+	while True:
+		try:
+			put_seq_and_go(seq)
+			t_start = time.time()
+			s_in = input('> ')
+			t_end = time.time()
+			tt = t_end - t_start
+			return s_in, tt
+		except (KeyboardInterrupt, EOFError):
+			confirm_stop_app()
+
+def get_list_lens_tt_chars(list_str):
+	# STATUS: DONE
+	list_lens = [len(x) for x in list_str]
+	tt_chars = sum(list_lens)
+	return list_lens, tt_chars
+
+def get_err_perc_weighted(list_seq, list_err_perc):
+	# STATUS: DONE
+	seq_lens, tt_chars = get_list_lens_tt_chars(list_seq)
+	weighted_perc = 0
+	for i, seq_len in enumerate(seq_lens):
+		weighted_perc += seq_len / tt_chars * list_err_perc[i]
+	return weighted_perc
+
+def get_printable_stats(stats):
+	# STATUS: DONE
+	# returns weighthed success rate (opposite of err perc) and typing speed
+	list_time, list_seq, list_in, list_err_perc = stats
+	err_perc_weighted = get_err_perc_weighted(list_seq, list_err_perc)
+	in_lens, tt_chars = get_list_lens_tt_chars(list_in)
+	secs = sum(list_time)
+	mins = secs / 60
+	if mins == 0:
+		wpm = 0
+	else:
+		wpm = tt_chars / mins / CHARS_PER_WORD
+	return secs, 1 - err_perc_weighted, wpm
+
+def print_stats(stats):
+	# STATUS: DONE
+	secs, perc, wpm = get_printable_stats(stats)
+	print('Time:%2d:%02d:%02d -- Correct %: %3d%% -- Words/min: %3d' % (
+		secs / 3600, (secs / 60) % 60, secs % 60, perc * 100, wpm))
+	return secs, perc, wpm
 
 def run_lv(lv):
-	# STATUS: TODO
-	print(f'Running level {lv}')
-	seqs = get_seqs(lv)
-	lv_time, lv_seq, lv_in, lv_err_perc = [], [], [], []
+	# STATUS: DONE
+	# THROWS: StopApp
+	while True:
+		try:
+			seqs = get_seqs(lv)
+			break
+		except InvalidSeq as e:
+			print('Error: could not load level.')
+			print(e.args[0])
+			try:
+				input('Change the file and press Enter to continue')
+			except (KeyboardInterrupt, EOFError):
+				confirm_stop_app()
+
+	lv_stats = [[], [], [], []]
+	lv_time, lv_seq, lv_in, lv_err_perc = lv_stats
+	lv_inc = 0
 	for seq in seqs:
-		# TODO: Handle Ctrl+D and Ctrl+C
 		try:
 			seq_in, seq_time = run_seq(seq)
 			lv_time.append(seq_time)
 			lv_seq.append(seq)
 			lv_in.append(seq_in)
-		except (KeyboardInterrupt, EOFError):
-	# TODO: each perc calculated in separate threads, weighted average
-	err_perc = error_percentage(seq, seq_in)
+		except StopApp:
+			lv_inc = None
+			break
 
+	print('Level done. Now calculating stats...')
+	while True:
+		try:
+			lv_err_perc += err_perc(lv_seq, lv_in)
+			break
+		except KeyboardInterrupt:
+			confirm_stop_app()
+	
+	print('Level stats:')
+	secs, perc, wpm = print_stats(lv_stats)
 
+	if lv_inc is not None:
+		lv_inc = lv_success(perc, wpm, lv)
+
+	return lv_inc, lv_stats
+
+def inc_lv(lv, lv_inc):
+	# STATUS: DONE
+	lv += lv_inc
+	lv = max(lv, 1)
+	lv = min(lv, MAX_LVS)
+	return lv
 
 def app(start_lv=None):
-	# STATUS: TODO
+	# STATUS: DONE
 	if start_lv is None:
 		lv = 1
 	else:
 		assert is_valid_lv(lv)
 	
-	tt_time, tt_seq, tt_in, tt_err_perc = [], [], [], []
-	tt_stats = [tt_time, tt_seq, tt_in, tt_err_per]
-	while True:
-			lv_stats = run_lv(lv)
+	tt_stats = [[], [], [], []]
+	tt_time, tt_seq, tt_in, tt_err_perc = tt_stats
+	try:
+		while True:
+			try:
+				input('Next level: %s. Press Enter to continue.' % lv)
+			except (KeyboardInterrupt, EOFError):
+				confirm_stop_app()
+			lv_inc, lv_stats = run_lv(lv)
 			for i in range(len(lv_stats)):
 				tt_stats[i] += lv_stats[i]
+			if lv_inc is None:
+				break
+			lv = inc_lv(lv, lv_inc)
+	except (KeyboardInterrupt, StopApp):
+		pass
+	
+	print('Total stats:')
+	print_stats(tt_stats)
 
 if __name__ == '__main__':
 	app()
