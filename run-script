@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-cd `/Users/Pat-Laugh/bin/cdb-back keyboard-warrior`
+cd `cdb-back keyboard-warrior`
 python3 script.py
