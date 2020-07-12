@@ -8,6 +8,7 @@ from alg_lv_success import lv_success
 
 DIR_LVS = './levels/' # STATUS: DONE
 ALL_LVS = os.listdir(DIR_LVS) # STATUS: DONE
+ALL_LVS.sort()
 MAX_LVS = len(ALL_LVS) # STATUS: DONE
 
 CHARS_PER_WORD = 5
