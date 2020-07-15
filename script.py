@@ -64,19 +64,30 @@ def put_seq_and_go(seq):
 class StopApp(Exception):
 	pass
 
-def confirm_stop_app():
-	# THROWS: StopApp
+class StopLevel(Exception):
+	pass
+
+def confirm_stop(msg, exc):
+	# THROWS: exc
 	# STATUS: DONE
 	while True:
 		try:
 			print('')
-			yn = input('Stop app? [y/N] ')
+			yn = input('Stop %s? [y/N] ' % msg)
 			if yn.lower() == 'y':
-				raise StopApp()
+				raise exc()
 			elif yn.lower() == 'n' or yn == '':
 				break
 		except (KeyboardInterrupt, EOFError):
 			pass
+
+def confirm_stop_app():
+	# THROWS: StopApp
+	confirm_stop('app', StopApp)
+	
+def confirm_stop_level():
+	# THROWS: StopLevel
+	confirm_stop('level', StopLevel)
 	
 def run_seq(seq):
 	# THROWS: StopApp
@@ -90,7 +101,7 @@ def run_seq(seq):
 			tt = t_end - t_start
 			return s_in, tt
 		except (KeyboardInterrupt, EOFError):
-			confirm_stop_app()
+			confirm_stop_level()
 
 def get_list_lens_tt_chars(list_str):
 	# STATUS: DONE
@@ -151,7 +162,7 @@ def run_lv(lv):
 			lv_time.append(seq_time)
 			lv_seq.append(seq)
 			lv_in.append(seq_in)
-		except StopApp:
+		except StopLevel:
 			lv_inc = None
 			break
 
@@ -197,7 +208,8 @@ def app(start_lv=None):
 			for i in range(len(lv_stats)):
 				tt_stats[i] += lv_stats[i]
 			if lv_inc is None:
-				break
+				confirm_stop_app()
+				continue
 			lv = inc_lv(lv, lv_inc)
 	except (KeyboardInterrupt, StopApp):
 		pass
