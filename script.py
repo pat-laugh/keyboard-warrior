@@ -6,6 +6,8 @@ import os, time
 from alg_err_perc import err_perc
 from alg_lv_success import lv_success
 
+from c07_draft import get_keys_sequence
+
 DIR_LVS = './levels/' # STATUS: DONE
 ALL_LVS = os.listdir(DIR_LVS) # STATUS: DONE
 ALL_LVS.sort()
@@ -32,7 +34,7 @@ def _check_seq(seq, lv_file_name, line_num):
 			)
 		)		
 
-seqs = {}
+global_seqs = {}
 def _get_seqs(lv):
 	# THROWS: InvalidSeq
 	# STATUS: DONE
@@ -42,15 +44,31 @@ def _get_seqs(lv):
 		lines = s.splitlines()
 		for i, line in enumerate(lines):
 			_check_seq(line, lv_file_name, i)
-		seqs[lv] = lines
+		global_seqs[lv] = lines
 
 def get_seqs(lv):
 	# THROWS: InvalidSeq
 	# STATUS: DONE
 	assert is_valid_lv(lv)
-	if lv not in seqs:
-		_get_seqs(lv)
-	return seqs[lv]
+	if lv == 1:
+		if lv not in global_seqs:
+			_get_seqs(lv)
+		return global_seqs[lv]
+	elif lv == 2:
+		seqs = []
+		for i in range(10):
+			left = get_keys_sequence('asdt ', 2)
+			right = get_keys_sequence('neiop', 2)
+			letters = (left + right)[:70]
+			seqs.append(''.join(letters).strip())
+		return seqs
+	elif lv == 3:
+		seqs = []
+		for i in range(10):
+			letters = get_keys_sequence('asdt neiop', 2)[:70]
+			seqs.append(''.join(letters).strip())
+		return seqs
+	assert(False)
 
 def put_seq_and_go(seq):
 	# STATUS: DONE
