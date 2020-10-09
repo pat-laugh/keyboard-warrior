@@ -46,6 +46,7 @@ def _get_seqs(lv):
 			_check_seq(line, lv_file_name, i)
 		global_seqs[lv] = lines
 
+MAX_LVS = 9 # Keep up to date
 def get_seqs(lv):
 	# THROWS: InvalidSeq
 	# STATUS: DONE
@@ -54,19 +55,66 @@ def get_seqs(lv):
 		if lv not in global_seqs:
 			_get_seqs(lv)
 		return global_seqs[lv]
-	elif lv == 2:
-		seqs = []
-		for i in range(10):
-			left = get_keys_sequence('asdt ', 2)
-			right = get_keys_sequence('neiop', 2)
-			letters = (left + right)[:70]
-			seqs.append(''.join(letters).strip())
+	seqs = []
+	if lv in [2, 3]:
+		left = 'asdt '
+		right = 'neiop'
+		if lv == 2:
+			for i in range(5):
+				_left = get_keys_sequence(left, 2)
+				_right = get_keys_sequence(right, 2)
+				letters = _left + _right
+				seqs.append(''.join(letters[:70]).strip())
+		elif lv == 3:
+			for i in range(5):
+				letters = get_keys_sequence(left + right, 2)
+				seqs.append(''.join(letters[:70]).strip())
 		return seqs
-	elif lv == 3:
-		seqs = []
-		for i in range(10):
-			letters = get_keys_sequence('asdt neiop', 2)[:70]
-			seqs.append(''.join(letters).strip())
+	elif lv in [4, 5]:
+		left = ['aq', 'sw', 'df', 'tgkr', ' ']
+		right = ['bnm', 'ehyj', 'i8', 'o9', 'p0']
+		if lv == 4:
+			for i in range(5):
+				_left = get_keys_sequence(left, 2)
+				_right = get_keys_sequence(right, 2)
+				letters = _left + _right
+				seqs.append(''.join(letters[:70]).strip())
+		elif lv == 5:
+			for i in range(5):
+				letters = get_keys_sequence(left + right, 2)
+				seqs.append(''.join(letters[:70]).strip())
+		return seqs
+	elif lv == 6:
+		left = ['1qaz', '2wsx', '3fdc', '4rtvkg', ' ']
+		right = ['bnm', 'yhje', '8iu', '9ol', '0p']
+		for i in range(5):
+			letters = get_keys_sequence(left + right, 2)
+			seqs.append(''.join(letters[:70]).strip())
+		return seqs
+	elif lv == 7:
+		# Alt. No repeats, no so space.
+		left = ['1qaz5', '2wsx6', '3fdc7', '4rtvkg`']
+		right = ['bnm,./', 'yhje;', '8iu\'[-', '9ol]=', '0p\\']
+		for i in range(5):
+			letters = get_keys_sequence(left + right, 2)
+			seqs.append(''.join(letters[:70]).strip())
+		return seqs
+	elif lv == 8:
+		# Alt. No repeats, no so space.
+		left = ['1qaz5!QAZ%', '2wsx6@WSX^', '3fdc7#FDC&', '4rtvkg`$RTVKG~']
+		right = ['bnm,./BNM<>?', 'yhje;HYJE:', '8iu\'[-*IU_{"',
+				'9ol]=(OL+}', '0p\\)P|']
+		for i in range(5):
+			letters = get_keys_sequence(left + right, 2)
+			seqs.append(''.join(letters[:70]).strip())
+		return seqs
+	elif lv == 9:
+		left = ['1qaz5!QAZ%', '2wsx6@WSX^', '3fdc7#FDC&', '4rtvkg`$RTVKG~', ' ']
+		right = ['bnm,./BNM<>?', 'yhje;HYJE:', '8iu\'[-*IU_{"',
+				'9ol]=(OL+}', '0p\\)P|']
+		for i in range(5):
+			letters = get_keys_sequence(''.join(left + right), 2)
+			seqs.append(''.join(letters[:70]).strip())
 		return seqs
 	assert(False)
 
