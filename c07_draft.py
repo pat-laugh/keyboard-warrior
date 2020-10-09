@@ -1,4 +1,3 @@
-from itertools import permutations
 import random, threading, time
 
 def _get_pairs(keys, i):
@@ -64,6 +63,24 @@ def _get_keys_sequence(keys, len_combinations, ret, lock):
 		lock.release()
 
 
+def _get_group_keys_sequence(group_keys, len_combinations, ret, lock):
+	group_ids = {}
+	for i, keys in enumerate(group_keys):
+		group_ids[i] = keys
+	tmp_ret = [None]
+	_get_keys_sequence(set(group_ids), len_combinations, tmp_ret, lock)
+	seq = tmp_ret[0]
+	for i, id in enumerate(seq):
+		items = list(group_ids[id])
+		random.shuffle(items)
+		seq[i] = items[0]
+	try:
+		lock.acquire()
+		ret[0] = seq
+	finally:
+		lock.release()
+
+
 def _check_thread(ret, lock):
 	try:
 		lock.acquire()
@@ -73,6 +90,7 @@ def _check_thread(ret, lock):
 	
 
 def get_keys_sequence(keys, len_combinations, timeout=None, tries=None):
+	# keys can be a string or a list of strings
 	assert(0 < len_combinations <= len(keys))
 	if timeout is None:
 		timeout, tries = len(keys), 3
@@ -81,8 +99,13 @@ def get_keys_sequence(keys, len_combinations, timeout=None, tries=None):
 	counter = 0
 	while counter < tries:
 		ret, lock = [None], threading.Lock()
-		t = threading.Thread(target=_get_keys_sequence,
-			args=(keys, len_combinations, ret, lock))
+		if type(keys) is str:
+			t = threading.Thread(target=_get_keys_sequence,
+				args=(keys, len_combinations, ret, lock))
+		else:
+			assert(type(keys) is list)
+			t = threading.Thread(target=_get_group_keys_sequence,
+				args=(keys, len_combinations, ret, lock))
 		t.daemon = True
 		t1 = time.time()
 		t.start()
