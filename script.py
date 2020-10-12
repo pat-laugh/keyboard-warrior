@@ -46,7 +46,7 @@ def _get_seqs(lv):
 			_check_seq(line, lv_file_name, i)
 		global_seqs[lv] = lines
 
-MAX_LVS = 9 # Keep up to date
+MAX_LVS = 8 # Keep up to date
 def get_seqs(lv):
 	# THROWS: InvalidSeq
 	# STATUS: DONE
@@ -70,28 +70,21 @@ def get_seqs(lv):
 				letters = get_keys_sequence(left + right, 2)
 				seqs.append(''.join(letters[:70]).strip())
 		return seqs
-	elif lv in [4, 5]:
+	elif lv == 4:
 		left = ['qa', 'ws', 'fd', 'rtkg', ' ']
 		right = ['bnm', 'yhje', '8i', '9o', '0p']
-		if lv == 4:
-			for i in range(4):
-				_left = get_keys_sequence(left, 2)
-				_right = get_keys_sequence(right, 2)
-				letters = _left + _right
-				seqs.append(''.join(letters[:70]).strip())
-		elif lv == 5:
-			for i in range(4):
-				letters = get_keys_sequence(left + right, 2)
-				seqs.append(''.join(letters[:70]).strip())
+		for i in range(4):
+			letters = get_keys_sequence(left + right, 2)
+			seqs.append(''.join(letters[:70]).strip())
 		return seqs
-	elif lv == 6:
+	elif lv == 5:
 		left = ['qaz', '2wsx', '3fdc', 'rtvkg', ' ']
 		right = ['bnm', 'yhje', '8iu', '9ol', '0p']
 		for i in range(4):
 			letters = get_keys_sequence(left + right, 2)
 			seqs.append(''.join(letters[:70]).strip())
 		return seqs
-	elif lv == 7:
+	elif lv == 6:
 		# Alt. No repeats, no so space.
 		left = ['qaz1', '2wsx5', '3fdc6', 'rtvkg4`']
 		right = ['bnm,./', 'yhje7;', '8iu-[\'', '9ol=]', '0p\\']
@@ -99,7 +92,7 @@ def get_seqs(lv):
 			letters = get_keys_sequence(left + right, 2)
 			seqs.append(''.join(letters[:70]).strip())
 		return seqs
-	elif lv == 8:
+	elif lv == 7:
 		# Alt. Shifts. No repeats, no so space.
 		left = ['qaz1QAZ!', '2wsx5@WSX%', '3fdc6#FDC^', 'rtvkg4`RTVKG$~']
 		right = ['bnm,./BNM<>?', 'yhje7;YHJE&:', '8iu-[\'*IU_{"',
@@ -108,7 +101,7 @@ def get_seqs(lv):
 			letters = get_keys_sequence(left + right, 2)
 			seqs.append(''.join(letters[:70]).strip())
 		return seqs
-	elif lv == 9:
+	elif lv == 8:
 		# Alt. Shifts. Repeats.
 		left = ['qaz1QAZ!', '2wsx5@WSX%', '3fdc6#FDC^', 'rtvkg4`RTVKG$~', ' ']
 		right = ['bnm,./BNM<>?', 'yhje7;YHJE&:', '8iu-[\'*IU_{"',
