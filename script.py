@@ -46,7 +46,7 @@ def _get_seqs(lv):
 			_check_seq(line, lv_file_name, i)
 		global_seqs[lv] = lines
 
-MAX_LVS = 8 # Keep up to date
+MAX_LVS = 7 # Keep up to date
 def get_seqs(lv):
 	# THROWS: InvalidSeq
 	# STATUS: DONE
@@ -78,39 +78,24 @@ def get_seqs(lv):
 			seqs.append(''.join(letters[:70]).strip())
 		return seqs
 	elif lv == 5:
+		# All keys. Repeats.
 		left = ['qaz', '2wsx', '3fdc', 'rtvkg', ' ']
 		right = ['bnm', 'yhje', '8iu', '9ol', '0p']
-		for i in range(4):
-			letters = get_keys_sequence(left + right, 2)
-			seqs.append(''.join(letters[:70]).strip())
-		return seqs
 	elif lv == 6:
-		# Alt. No repeats, no so space.
-		left = ['qaz1', '2wsx5', '3fdc6', 'rtvkg4`']
+		# All keys. Alts. Repeats.
+		left = ['qaz1', '2wsx5', '3fdc6', 'rtvkg4`', ' ']
 		right = ['bnm,./', 'yhje7;', '8iu-[\'', '9ol=]', '0p\\']
-		for i in range(4):
-			letters = get_keys_sequence(left + right, 2)
-			seqs.append(''.join(letters[:70]).strip())
-		return seqs
 	elif lv == 7:
-		# Alt. Shifts. No repeats, no so space.
-		left = ['qaz1QAZ!', '2wsx5@WSX%', '3fdc6#FDC^', 'rtvkg4`RTVKG$~']
-		right = ['bnm,./BNM<>?', 'yhje7;YHJE&:', '8iu-[\'*IU_{"',
-				'9ol=](OL+}', '0p\\)P|']
-		for i in range(4):
-			letters = get_keys_sequence(left + right, 2)
-			seqs.append(''.join(letters[:70]).strip())
-		return seqs
-	elif lv == 8:
-		# Alt. Shifts. Repeats.
+		# All keys. Alts. Shifts. Repeats.
 		left = ['qaz1QAZ!', '2wsx5@WSX%', '3fdc6#FDC^', 'rtvkg4`RTVKG$~', ' ']
 		right = ['bnm,./BNM<>?', 'yhje7;YHJE&:', '8iu-[\'*IU_{"',
 				'9ol=](OL+}', '0p\\)P|']
-		for i in range(4):
-			letters = get_keys_sequence(''.join(left + right), 2)
-			seqs.append(''.join(letters[:70]).strip())
-		return seqs
-	assert(False)
+	else:
+		assert(False)
+	for i in range(4):
+		letters = get_keys_sequence(''.join(left + right), 2)
+		seqs.append(''.join(letters[:70]).strip())
+	return seqs
 
 def put_seq_and_go(seq):
 	# STATUS: DONE
