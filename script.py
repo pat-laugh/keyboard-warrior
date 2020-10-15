@@ -94,6 +94,17 @@ def get_seqs(lv):
 		assert(False)
 	for i in range(4):
 		letters = get_keys_sequence(''.join(left + right), 2)
+		# T(112)
+		div = 9 if lv <= 5 else 15
+		x = ord(letters[0]) % div + 1
+		while x < len(letters) - 1:
+			letters[x], x = ' ', x + ord(letters[x]) % div + 1
+		x = 0
+		while x < len(letters) - 1:
+			if letters[x] == letters[x+1] == ' ':
+				del letters[x]
+			else:
+				x += 1
 		seqs.append(''.join(letters[:70]).strip())
 	return seqs
 
