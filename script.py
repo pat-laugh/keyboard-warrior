@@ -46,6 +46,31 @@ def _get_seqs(lv):
 			_check_seq(line, lv_file_name, i)
 		global_seqs[lv] = lines
 
+ROW_HOME = [['a', 's', 'd', 't',   ' '], ['n', 'e', 'i', 'o', 'p']]
+ROW_UP = [['q', 'w', 'f', 'rkg', ''], ['bm', 'yhj', '8', '9', '0']]
+ROW_BOT = [['z', 'x', 'c', 'v',   ''], ['', '', 'u', 'l', '']]
+ROW_HOME_ALT = [['',  '',  '',  '',    ''], ['.', ';', '[', ']', '\\']]
+ROW_UP_ALT = [['1', '2', '3', '45',  ''], [',/', '67',  '-',  '=', '']]
+ROW_BOT_ALT = [['',  '',  '',  '`',   ''], ['',   '',    '\'', '',  '']]
+ROW_HOME_SHIFT = [['A', 'S', 'D', 'T',   ''], ['N',  'E',   'I',  'O', 'P']]
+ROW_UP_SHIFT = [['Q', 'W', 'F', 'RKG', ''], ['BM', 'YHJ', '*',  '(', ')']]
+ROW_BOT_SHIFT = [['Z', 'X', 'C', 'V',   ''], ['',   '',    'U',  'L', '']]
+ROW_HOME_ALT_SHIFT = [['',  '',  '',  '',    ''], ['>',  ':',   '{',  '}', '|']]
+ROW_UP_ALT_SHIFT = [['!', '@', '#', '$%',  ''], ['<?', '^&',  '_',  '+', '']]
+ROW_BOT_ALT_SHIFT = [['',  '',  '',  '~',   ''], ['',   '',    '"',  '',  '']]
+
+rlf, rrf = [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]
+rlh, rlu, rlb = [x[0] for x in [ROW_HOME, ROW_UP, ROW_BOT]]
+rrh, rru, rrb = [x[1] for x in [ROW_HOME, ROW_UP, ROW_BOT]]
+rl = [rlh, rlu, rlb]
+rr = [rrh, rru, rrb]
+rla = [x[0] for x in [ROW_HOME_ALT, ROW_UP_ALT, ROW_BOT_ALT]]
+rra = [x[1] for x in [ROW_HOME_ALT, ROW_UP_ALT, ROW_BOT_ALT]]
+rls = [x[0] for x in [ROW_HOME_SHIFT, ROW_UP_SHIFT, ROW_BOT_SHIFT]]
+rrs = [x[1] for x in [ROW_HOME_SHIFT, ROW_UP_SHIFT, ROW_BOT_SHIFT]]
+rlas = [x[0] for x in [ROW_HOME_ALT_SHIFT, ROW_UP_ALT_SHIFT, ROW_BOT_ALT_SHIFT]]
+rras = [x[1] for x in [ROW_HOME_ALT_SHIFT, ROW_UP_ALT_SHIFT, ROW_BOT_ALT_SHIFT]]
+
 MAX_LVS = 7 # Keep up to date
 def get_seqs(lv):
 	# THROWS: InvalidSeq
@@ -57,8 +82,8 @@ def get_seqs(lv):
 		return global_seqs[lv]
 	seqs = []
 	if lv in [2, 3]:
-		left = 'asdt '
-		right = 'neiop'
+		left = ''.join(rlh)
+		right = ''.join(rrh)
 		if lv == 2:
 			for i in range(4):
 				_left = get_keys_sequence(left, 2)
@@ -71,25 +96,24 @@ def get_seqs(lv):
 				seqs.append(''.join(letters[:70]).strip())
 		return seqs
 	elif lv == 4:
-		left = ['qa', 'ws', 'fd', 'rtkg', ' ']
-		right = ['bnm', 'yhje', '8i', '9o', '0p']
+		left = [rlh[i] + rlu[i] for i in rlf]
+		right = [rrh[i] + rru[i] for i in rrf]
 		for i in range(4):
 			letters = get_keys_sequence(left + right, 2)
 			seqs.append(''.join(letters[:70]).strip())
 		return seqs
 	elif lv == 5:
 		# All keys. Repeats.
-		left = ['qaz', '2wsx', '3fdc', 'rtvkg', ' ']
-		right = ['bnm', 'yhje', '8iu', '9ol', '0p']
+		left = [''.join([x[i] for x in rl]) for i in rlf]
+		right = [''.join([x[i] for x in rr]) for i in rrf]
 	elif lv == 6:
 		# All keys. Alts. Repeats.
-		left = ['qaz1', '2wsx5', '3fdc6', 'rtvkg4`', ' ']
-		right = ['bnm,./', 'yhje7;', '8iu-[\'', '9ol=]', '0p\\']
+		left = [''.join([x[i] for x in rl + rla]) for i in rlf]
+		right = [''.join([x[i] for x in rr + rra]) for i in rrf]
 	elif lv == 7:
 		# All keys. Alts. Shifts. Repeats.
-		left = ['qaz1QAZ!', '2wsx5@WSX%', '3fdc6#FDC^', 'rtvkg4`RTVKG$~', ' ']
-		right = ['bnm,./BNM<>?', 'yhje7;YHJE&:', '8iu-[\'*IU_{"',
-				'9ol=](OL+}', '0p\\)P|']
+		left = [''.join([x[i] for x in rl + rla + rls + rlas]) for i in rlf]
+		right = [''.join([x[i] for x in rr + rra + rrs + rras]) for i in rrf]
 	else:
 		assert(False)
 	for i in range(4):
