@@ -8,138 +8,9 @@ from alg_lv_success import lv_success
 
 from c07_draft import get_keys_sequence
 
-DIR_LVS = './levels/' # STATUS: DONE
-ALL_LVS = os.listdir(DIR_LVS) # STATUS: DONE
-ALL_LVS.sort()
-MAX_LVS = len(ALL_LVS) # STATUS: DONE
+import lv_display, lv_gen
 
 CHARS_PER_WORD = 5
-
-assert 1 <= MAX_LVS <= 50
-
-def is_valid_lv(lv):
-	# STATUS: DONE
-	return type(lv) is int and 1 <= lv <= MAX_LVS
-
-class InvalidSeq(Exception):
-	pass
-
-def _check_seq(seq, lv_file_name, line_num):
-	# STATUS: DONE
-	if not 1 <= len(seq) <= 70:
-		raise InvalidSeq(
-			'filename "%s": line %s: '
-			'length must be between 1 and 70' % (
-				lv_file_name, line_num + 1
-			)
-		)		
-
-global_seqs = {}
-def _get_seqs(lv):
-	# THROWS: InvalidSeq
-	# STATUS: DONE
-	lv_file_name = os.path.join(DIR_LVS, ALL_LVS[lv - 1])
-	with open(lv_file_name) as f:
-		s = f.read()
-		lines = s.splitlines()
-		for i, line in enumerate(lines):
-			_check_seq(line, lv_file_name, i)
-		global_seqs[lv] = lines
-
-ROW_HOME = [['a', 's', 'd', 't',   ' '], ['n', 'e', 'i', 'o', 'p']]
-ROW_UP = [['q', 'w', 'f', 'rkg', ''], ['bm', 'yhj', '8', '9', '0']]
-ROW_BOT = [['z', 'x', 'c', 'v',   ''], ['', '', 'u', 'l', '']]
-ROW_HOME_ALT = [['',  '',  '',  '',    ''], ['.', ';', '[', ']', '\\']]
-ROW_UP_ALT = [['1', '2', '3', '45',  ''], [',/', '67',  '-',  '=', '']]
-ROW_BOT_ALT = [['',  '',  '',  '`',   ''], ['',   '',    '\'', '',  '']]
-ROW_HOME_SHIFT = [['A', 'S', 'D', 'T',   ''], ['N',  'E',   'I',  'O', 'P']]
-ROW_UP_SHIFT = [['Q', 'W', 'F', 'RKG', ''], ['BM', 'YHJ', '*',  '(', ')']]
-ROW_BOT_SHIFT = [['Z', 'X', 'C', 'V',   ''], ['',   '',    'U',  'L', '']]
-ROW_HOME_ALT_SHIFT = [['',  '',  '',  '',    ''], ['>',  ':',   '{',  '}', '|']]
-ROW_UP_ALT_SHIFT = [['!', '@', '#', '$%',  ''], ['<?', '^&',  '_',  '+', '']]
-ROW_BOT_ALT_SHIFT = [['',  '',  '',  '~',   ''], ['',   '',    '"',  '',  '']]
-
-rlf, rrf = [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]
-rlh, rlu, rlb = [x[0] for x in [ROW_HOME, ROW_UP, ROW_BOT]]
-rrh, rru, rrb = [x[1] for x in [ROW_HOME, ROW_UP, ROW_BOT]]
-rl = [rlh, rlu, rlb]
-rr = [rrh, rru, rrb]
-rla = [x[0] for x in [ROW_HOME_ALT, ROW_UP_ALT, ROW_BOT_ALT]]
-rra = [x[1] for x in [ROW_HOME_ALT, ROW_UP_ALT, ROW_BOT_ALT]]
-rls = [x[0] for x in [ROW_HOME_SHIFT, ROW_UP_SHIFT, ROW_BOT_SHIFT]]
-rrs = [x[1] for x in [ROW_HOME_SHIFT, ROW_UP_SHIFT, ROW_BOT_SHIFT]]
-rlas = [x[0] for x in [ROW_HOME_ALT_SHIFT, ROW_UP_ALT_SHIFT, ROW_BOT_ALT_SHIFT]]
-rras = [x[1] for x in [ROW_HOME_ALT_SHIFT, ROW_UP_ALT_SHIFT, ROW_BOT_ALT_SHIFT]]
-
-MAX_LVS = 7 # Keep up to date
-def get_seqs(lv):
-	# THROWS: InvalidSeq
-	# STATUS: DONE
-	assert is_valid_lv(lv)
-	if lv == 1:
-		if lv not in global_seqs:
-			_get_seqs(lv)
-		return global_seqs[lv]
-	seqs = []
-	if lv in [2, 3]:
-		left = ''.join(rlh)
-		right = ''.join(rrh)
-		if lv == 2:
-			for i in range(4):
-				_left = get_keys_sequence(left, 2)
-				_right = get_keys_sequence(right, 2)
-				letters = _left + _right
-				seqs.append(''.join(letters[:70]).strip())
-		elif lv == 3:
-			for i in range(4):
-				letters = get_keys_sequence(left + right, 2)
-				seqs.append(''.join(letters[:70]).strip())
-		return seqs
-	elif lv == 4:
-		left = [rlh[i] + rlu[i] for i in rlf]
-		right = [rrh[i] + rru[i] for i in rrf]
-		for i in range(4):
-			letters = get_keys_sequence(left + right, 2)
-			seqs.append(''.join(letters[:70]).strip())
-		return seqs
-	elif lv == 5:
-		# All keys. Repeats.
-		left = [''.join([x[i] for x in rl]) for i in rlf]
-		right = [''.join([x[i] for x in rr]) for i in rrf]
-	elif lv == 6:
-		# All keys. Alts. Repeats.
-		left = [''.join([x[i] for x in rl + rla]) for i in rlf]
-		right = [''.join([x[i] for x in rr + rra]) for i in rrf]
-	elif lv == 7:
-		# All keys. Alts. Shifts. Repeats.
-		left = [''.join([x[i] for x in rl + rla + rls + rlas]) for i in rlf]
-		right = [''.join([x[i] for x in rr + rra + rrs + rras]) for i in rrf]
-	else:
-		assert(False)
-	for i in range(4):
-		letters = get_keys_sequence(''.join(left + right), 2)
-		# T(112)
-		div = 9 if lv <= 5 else 15
-		x = ord(letters[0]) % div + 1
-		while x < len(letters) - 1:
-			letters[x], x = ' ', x + ord(letters[x]) % div + 1
-		x = 0
-		while x < len(letters) - 1:
-			if letters[x] == letters[x+1] == ' ':
-				del letters[x]
-			else:
-				x += 1
-		seqs.append(''.join(letters[:70]).strip())
-	return seqs
-
-def put_seq_and_go(seq):
-	# STATUS: DONE
-	assert type(seq) is str and 1 <= len(seq) <= 70
-	print('$ %-70s ' % seq, end='', flush=True)
-	for i in range(3):
-		time.sleep(0.3)
-		print('.', end='', flush=True)
-	print(' Go!')
 
 class StopApp(Exception):
 	pass
@@ -174,7 +45,7 @@ def run_seq(seq):
 	# STATUS: DONE
 	while True:
 		try:
-			put_seq_and_go(seq)
+			lv_display.put_seq_and_go(seq)
 			t_start = time.time()
 			s_in = input('> ')
 			t_end = time.time()
@@ -222,16 +93,8 @@ def run_lv(lv):
 	# STATUS: DONE
 	# THROWS: StopApp
 	while True:
-		try:
-			seqs = get_seqs(lv)
-			break
-		except InvalidSeq as e:
-			print('Error: could not load level.')
-			print(e.args[0])
-			try:
-				input('Change the file and press Enter to continue')
-			except (KeyboardInterrupt, EOFError):
-				confirm_stop_app()
+		seqs = lv_gen.get_seqs(lv)
+		break
 
 	lv_stats = [[], [], [], []]
 	lv_time, lv_seq, lv_in, lv_err_perc = lv_stats
@@ -266,7 +129,7 @@ def inc_lv(lv, lv_inc):
 	# STATUS: DONE
 	lv += lv_inc
 	lv = max(lv, 1)
-	lv = min(lv, MAX_LVS)
+	lv = min(lv, lv_gen.MAX_LVS)
 	return lv
 
 def app(start_lv=None):
@@ -274,7 +137,7 @@ def app(start_lv=None):
 	if start_lv is None:
 		lv = 1
 	else:
-		assert is_valid_lv(lv)
+		assert lv_gen.is_valid_lv(lv)
 	
 	tt_stats = [[], [], [], []]
 	tt_time, tt_seq, tt_in, tt_err_perc = tt_stats
