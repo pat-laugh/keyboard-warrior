@@ -111,17 +111,13 @@ def _get_seqs(lv):
 		seqs.append(''.join(letters[:MAX_SEQ]).strip())
 	return seqs
 
-LV_LOCKS = [threading.Lock() for _ in range(MAX_LVS)]
-LV_EVENTS_CONSUME = [threading.Event() for _ in range(MAX_LVS)]
-LV_EVENTS_GENERATE = [threading.Event() for _ in range(MAX_LVS)]
-LV_SEQS = [None] * MAX_LVS
+LV_LOCKS, LV_EV_CON, LV_EV_GEN, LV_THREADS, LV_SEQS = [], [], [], [], []
 EV_END_APP = threading.Event()
 
 def _gen_lv_thread(lv):
 	lv_idx = lv - 1
-	ev_consume = LV_EVENTS_CONSUME[lv_idx]
-	ev_generate = LV_EVENTS_GENERATE[lv_idx]
-	while ev_generate.wait():
+	ev_con, ev_gen = LV_EV_CON[lv_idx], LV_EV_GEN[lv_idx]
+	while ev_gen.wait():
 		if EV_END_APP.is_set():
 			break
 		try:
@@ -129,36 +125,47 @@ def _gen_lv_thread(lv):
 		except Exception:
 			continue
 		LV_LOCKS[lv_idx].acquire()
-		ev_generate.clear()
-		ev_consume.set()
+		ev_gen.clear()
+		ev_con.set()
 		LV_LOCKS[lv_idx].release()
 		if EV_END_APP.is_set():
 			break
 
+def _check_gen_lv_items(lv):
+	lv_idx = lv - 1
+	LV_EV_CON.append(threading.Event())
+	ev_gen = threading.Event()
+	LV_EV_GEN.append(ev_gen)
+	LV_LOCKS.append(threading.Lock())
+	LV_SEQS.append(None)
+	t = threading.Thread(target=_gen_lv_thread, args=[lv])
+	LV_THREADS.append(t)
+	ev_gen.set()
+	t.start()
+
 def get_seqs(lv):
-	ev_consume = LV_EVENTS_CONSUME[lv - 1]
-	ev_consume.wait()
+	ev_con = LV_EV_CON[lv - 1]
+	ev_con.wait()
 	item = LV_SEQS[lv - 1]
-	ev_consume.clear()
+	ev_con.clear()
 
 	lower = max(1, lv - 1)
 	higher = min(MAX_LVS, lv + 1)
 	lvs = set([lower, lv, higher])
 	for lv in lvs:
+		if len(LV_THREADS) < lv:
+			_check_gen_lv_items(lv)
+			continue
 		LV_LOCKS[lv - 1].acquire()
-		if not LV_EVENTS_CONSUME[lv - 1].is_set():
-			LV_EVENTS_GENERATE[lv - 1].set()
+		if not LV_EV_CON[lv - 1].is_set():
+			LV_EV_GEN[lv - 1].set()
 		LV_LOCKS[lv - 1].release()
 	return item
 
 def end_app():
 	EV_END_APP.set()
-	for x in LV_EVENTS_CONSUME + LV_EVENTS_GENERATE:
+	for x in LV_EV_CON + LV_EV_GEN:
 		x.set()
 
-for lv in range(1, MAX_LVS + 1):
-	t = threading.Thread(target=_gen_lv_thread, args=[lv])
-	t.start()
-
 # prepare lv 1
-LV_EVENTS_GENERATE[0].set()
+_check_gen_lv_items(1)
