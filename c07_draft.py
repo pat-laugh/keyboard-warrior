@@ -1,5 +1,7 @@
 import random, threading, time
 
+DEF_VAL = []
+
 class Timeout(Exception):
 	pass
 
@@ -59,12 +61,7 @@ def _get_keys_sequence(keys, len_combinations, ret, lock):
 			l[i], l[swap_i] = l[swap_i], l[i]
 		else:
 			break
-	try:
-		lock.acquire()
-		ret[0] = seq
-	finally:
-		lock.release()
-
+	_check_thread(ret, lock, seq)
 
 def _get_group_keys_sequence(group_keys, len_combinations, ret, lock):
 	group_ids = {}
@@ -77,20 +74,7 @@ def _get_group_keys_sequence(group_keys, len_combinations, ret, lock):
 		items = list(group_ids[id])
 		random.shuffle(items)
 		seq[i] = items[0]
-	try:
-		lock.acquire()
-		ret[0] = seq
-	finally:
-		lock.release()
-
-
-def _check_thread(ret, lock):
-	try:
-		lock.acquire()
-		return ret[0]
-	finally:
-		lock.release()
-	
+	_check_thread(ret, lock, seq)
 
 def get_keys_sequence(keys, len_combinations, timeout=None, tries=None):
 	# keys can be a string or a list of strings
@@ -99,17 +83,29 @@ def get_keys_sequence(keys, len_combinations, timeout=None, tries=None):
 		timeout, tries = len(keys), 3
 	else:
 		assert(tries > 0 and timeout > 0)
+	if type(keys) is str:
+		func = _get_keys_sequence
+	else:
+		assert(type(keys) is list)
+		func = _get_group_keys_sequence
+	args = [keys, len_combinations]
+	return _run_in_thread(func, args, timeout, tries)
+
+def _check_thread(ret, lock, val=DEF_VAL):
+	try:
+		lock.acquire()
+		if val is DEF_VAL:
+			return ret[0]
+		ret[0] = val
+	finally:
+		lock.release()
+
+def _run_in_thread(func, args, timeout, tries):
 	counter = 0
 	while counter < tries:
 		ret, lock = [None], threading.Lock()
-		if type(keys) is str:
-			t = threading.Thread(target=_get_keys_sequence,
-				args=(keys, len_combinations, ret, lock))
-		else:
-			assert(type(keys) is list)
-			t = threading.Thread(target=_get_group_keys_sequence,
-				args=(keys, len_combinations, ret, lock))
-		t.daemon = True
+		args = args[:] + [ret, lock]
+		t = threading.Thread(target=func, args=args, daemon=True)
 		t1 = time.time()
 		t.start()
 		time.sleep(0.1)
