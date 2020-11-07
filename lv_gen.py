@@ -164,10 +164,13 @@ def get_seqs(lv):
 		LV_LOCKS[lv - 1].release()
 	return item
 
-def end_app():
+def _kill_threads():
+	threading.main_thread().join()
 	EV_END_APP.set()
 	for x in LV_EV_CON + LV_EV_GEN:
 		x.set()
+
+threading.Thread(target=_kill_threads, daemon=True).start()
 
 # prepare lv 1
 _check_gen_lv_items(1)

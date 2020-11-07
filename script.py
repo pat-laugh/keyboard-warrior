@@ -157,7 +157,6 @@ def app(start_lv=None):
 	
 	print('Total stats:')
 	print_stats(tt_stats)
-	lv_gen.end_app()
 
 if __name__ == '__main__':
 	app()
