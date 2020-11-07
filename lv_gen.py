@@ -1,10 +1,14 @@
-import threading
+import math, threading
 
 from lv_display import MAX_SEQ
-from c07_draft import get_keys_sequence, Timeout
+from c07_draft import get_keys_sequence, get_keys_random, Timeout
 
 MAX_LVS = 7 # Keep up to date
 NUM_SEQS = 4
+# T(231)
+MODES = ['random', 'text', 'doc', 'code']
+MODE_RANDOM, MODE_TEXT, MODE_DOC, MODE_CODE = MODES
+MODE = MODE_CODE
 
 ROW_HOME = [['a', 's', 'd', 't',   ' '], ['n', 'e', 'i', 'o', 'p']]
 ROW_UP = [['q', 'w', 'f', 'rkg', ''], ['bm', 'yhj', '8', '9', '0']]
@@ -30,6 +34,27 @@ rls = [x[0] for x in [ROW_HOME_SHIFT, ROW_UP_SHIFT, ROW_BOT_SHIFT]]
 rrs = [x[1] for x in [ROW_HOME_SHIFT, ROW_UP_SHIFT, ROW_BOT_SHIFT]]
 rlas = [x[0] for x in [ROW_HOME_ALT_SHIFT, ROW_UP_ALT_SHIFT, ROW_BOT_ALT_SHIFT]]
 rras = [x[1] for x in [ROW_HOME_ALT_SHIFT, ROW_UP_ALT_SHIFT, ROW_BOT_ALT_SHIFT]]
+
+# T(231)
+weight_code = {'X': 199, '}': 406, ')': 14422, 'c': 17037, 'J': 88, '└': 7,
+'O': 1683, 'Z': 55, 'n': 33012, '%': 2351, '\\': 1001, '7': 186, '?': 152,
+'W': 505, 'u': 14618, 'v': 4339, 'ç': 1, 'H': 513, '>': 670, '!': 475,
+',': 10698, '–': 2, 'a': 31700, 'à': 3, 'F': 1586, '^': 46, ';': 242,
+'=': 11629, 'f': 16572, '/': 1523, 'é': 27, 'R': 1793, '`': 71, '8': 226,
+'K': 669, 'r': 35335, '$': 52, '~': 48, '(': 14415, '<': 584, 'B': 733,
+'_': 26635, 'y': 7564, '{': 410, 'p': 18129, '5': 466, 'P': 1666, '9': 264,
+'G': 828, '\n': 27582, '0': 2511, '|': 120, ']': 3562, 'E': 3715, '-': 2407,
+'4': 516, 'A': 2321, 'l': 25363, '.': 12930, 'e': 64153, 'i': 34802, 'C': 1584,
+'I': 1904, 'w': 3845, 'b': 6194, '§': 1, ':': 9332, '3': 614, 'x': 4276,
+'"': 1032, 'S': 2445, 's': 39246, '[': 3592, 'L': 1506, "'": 15304, ' ': 64766,
+'t': 45558, '&': 21, 'd': 19795, 'Y': 358, '│': 5, '@': 188, 'N': 2674,
+'\t': 41552, 'T': 3292, 'V': 768, 'm': 15269, 'M': 1282, 'Q': 120, 'g': 8303,
+'—': 1, '6': 329, '─': 24, '2': 1005, 'h': 7921, '+': 1179, '*': 442, 'U': 805,
+'1': 2149, 'D': 1469, 'j': 1897, '├': 5, 'k': 4729, 'o': 29686, '#': 1361,
+'q': 1588, 'z': 274}
+code_total = sum(weight_code.values())
+for key, val in weight_code.items():
+	weight_code[key] = val / code_total
 
 def is_valid_lv(lv):
 	# STATUS: DONE
@@ -87,23 +112,36 @@ def _get_seqs(lv):
 		# All keys. Repeats.
 		left = [''.join([x[i] for x in rl]) for i in rlf]
 		right = [''.join([x[i] for x in rr]) for i in rrf]
+		div = 9
+		mul = 100
 	elif lv == 6:
 		# All keys. Alts. Repeats.
 		left = [''.join([x[i] for x in rl + rla]) for i in rlf]
 		right = [''.join([x[i] for x in rr + rra]) for i in rrf]
+		div = 15
+		mul = 1000
 	elif lv == 7:
 		# All keys. Alts. Shifts. Repeats.
 		left = [''.join([x[i] for x in rl + rla + rls + rlas]) for i in rlf]
 		right = [''.join([x[i] for x in rr + rra + rrs + rras]) for i in rrf]
+		div = 15
+		mul = 10000
 	else:
 		assert(False)
+	if MODE is MODE_CODE:
+		all_letters = []
+		for c in set(''.join(left + right)):
+			all_letters += [c] * (math.ceil(weight_code[c] * mul))
 	for _ in range(NUM_SEQS):
-		letters = get_keys_sequence(''.join(left + right), 2)
+		if MODE is MODE_CODE:
+			letters = get_keys_random(all_letters)
+		elif MODE is MODE_RANDOM:
+			letters = get_keys_sequence(''.join(left + right), 2)
+			# T(112)
+			x = ord(letters[0]) % div + 1
+			while x < len(letters) - 1:
+				letters[x], x = ' ', x + ord(letters[x]) % div + 1
 		# T(112)
-		div = 9 if lv <= 5 else 15
-		x = ord(letters[0]) % div + 1
-		while x < len(letters) - 1:
-			letters[x], x = ' ', x + ord(letters[x]) % div + 1
 		x = 0
 		while x < len(letters) - 1:
 			if letters[x] == letters[x+1] == ' ':
