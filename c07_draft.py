@@ -1,5 +1,8 @@
 import random, threading, time
 
+class Timeout(Exception):
+	pass
+
 def _get_pairs(keys, i):
 	pairs = []
 	while i + 1 < len(keys):
@@ -117,5 +120,5 @@ def get_keys_sequence(keys, len_combinations, timeout=None, tries=None):
 		if _check_thread(ret, lock) is not None:
 			return ret[0]
 		counter += 1
-	raise Exception('Could not get keys: timeout')
+	raise Timeout('Could not get keys: timeout')
 

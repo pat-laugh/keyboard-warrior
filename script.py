@@ -6,8 +6,6 @@ import os, time
 from alg_err_perc import err_perc
 from alg_lv_success import lv_success
 
-from c07_draft import get_keys_sequence
-
 import lv_display, lv_gen
 
 CHARS_PER_WORD = 5

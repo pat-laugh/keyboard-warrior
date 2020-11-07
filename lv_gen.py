@@ -1,8 +1,10 @@
 import threading
 
 from lv_display import MAX_SEQ
+from c07_draft import get_keys_sequence, Timeout
 
 MAX_LVS = 7 # Keep up to date
+NUM_SEQS = 4
 
 ROW_HOME = [['a', 's', 'd', 't',   ' '], ['n', 'e', 'i', 'o', 'p']]
 ROW_UP = [['q', 'w', 'f', 'rkg', ''], ['bm', 'yhj', '8', '9', '0']]
@@ -58,26 +60,26 @@ def _get_seqs(lv):
 	assert is_valid_lv(lv)
 	if lv == 1:
 		s = gen_lv_1()
-		return [s] * 4
+		return [s] * NUM_SEQS
 	seqs = []
 	if lv in [2, 3]:
 		left = ''.join(rlh)
 		right = ''.join(rrh)
 		if lv == 2:
-			for i in range(4):
+			for _ in range(NUM_SEQS):
 				_left = get_keys_sequence(left, 2)
 				_right = get_keys_sequence(right, 2)
 				letters = _left + _right
 				seqs.append(''.join(letters[:MAX_SEQ]).strip())
 		elif lv == 3:
-			for i in range(4):
+			for _ in range(NUM_SEQS):
 				letters = get_keys_sequence(left + right, 2)
 				seqs.append(''.join(letters[:MAX_SEQ]).strip())
 		return seqs
 	elif lv == 4:
 		left = [rlh[i] + rlu[i] for i in rlf]
 		right = [rrh[i] + rru[i] for i in rrf]
-		for i in range(4):
+		for _ in range(NUM_SEQS):
 			letters = get_keys_sequence(left + right, 2)
 			seqs.append(''.join(letters[:MAX_SEQ]).strip())
 		return seqs
@@ -95,7 +97,7 @@ def _get_seqs(lv):
 		right = [''.join([x[i] for x in rr + rra + rrs + rras]) for i in rrf]
 	else:
 		assert(False)
-	for i in range(4):
+	for _ in range(NUM_SEQS):
 		letters = get_keys_sequence(''.join(left + right), 2)
 		# T(112)
 		div = 9 if lv <= 5 else 15
@@ -122,7 +124,7 @@ def _gen_lv_thread(lv):
 			break
 		try:
 			LV_SEQS[lv_idx] = _get_seqs(lv)
-		except Exception:
+		except Timeout:
 			continue
 		LV_LOCKS[lv_idx].acquire()
 		ev_gen.clear()
