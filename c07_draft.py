@@ -76,6 +76,11 @@ def _get_group_keys_sequence(group_keys, len_combinations, ret, lock):
 		seq[i] = items[0]
 	_check_thread(ret, lock, seq)
 
+def _get_keys_random(keys, ret, lock):
+	seq = list(keys)
+	random.shuffle(seq)
+	_check_thread(ret, lock, seq)
+
 def get_keys_sequence(keys, len_combinations, timeout=None, tries=None):
 	# keys can be a string or a list of strings
 	assert(0 < len_combinations <= len(keys))
@@ -90,6 +95,9 @@ def get_keys_sequence(keys, len_combinations, timeout=None, tries=None):
 		func = _get_group_keys_sequence
 	args = [keys, len_combinations]
 	return _run_in_thread(func, args, timeout, tries)
+
+def get_keys_random(keys):
+	return _run_in_thread(_get_keys_random, [keys], 3, 3)
 
 def _check_thread(ret, lock, val=DEF_VAL):
 	try:
