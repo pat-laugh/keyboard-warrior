@@ -1,4 +1,4 @@
-import math, threading
+import math, string, threading
 
 from lv_display import MAX_SEQ
 from c07_draft import get_keys_sequence, get_keys_random, Timeout
@@ -52,6 +52,9 @@ weight_code = {'X': 199, '}': 406, ')': 14422, 'c': 17037, 'J': 88, '└': 7,
 '—': 1, '6': 329, '─': 24, '2': 1005, 'h': 7921, '+': 1179, '*': 442, 'U': 805,
 '1': 2149, 'D': 1469, 'j': 1897, '├': 5, 'k': 4729, 'o': 29686, '#': 1361,
 'q': 1588, 'z': 274}
+for key, val in weight_code.items():
+	if key in string.ascii_letters or key == '_':
+		weight_code[key] = val / 2
 code_total = sum(weight_code.values())
 for key, val in weight_code.items():
 	weight_code[key] = val / code_total
@@ -110,28 +113,28 @@ def _get_seqs(lv):
 		return seqs
 	elif lv == 5:
 		# All keys. Repeats.
-		left = [''.join([x[i] for x in rl]) for i in rlf]
-		right = [''.join([x[i] for x in rr]) for i in rrf]
+		left = [x[i] for x in rl for i in rlf]
+		right = [x[i] for x in rr for i in rrf]
 		div = 9
 		mul = 100
 	elif lv == 6:
 		# All keys. Alts. Repeats.
-		left = [''.join([x[i] for x in rl + rla]) for i in rlf]
-		right = [''.join([x[i] for x in rr + rra]) for i in rrf]
+		left = [x[i] for x in rl + rla for i in rlf]
+		right = [x[i] for x in rr + rra for i in rrf]
 		div = 15
 		mul = 1000
 	elif lv == 7:
 		# All keys. Alts. Shifts. Repeats.
-		left = [''.join([x[i] for x in rl + rla + rls + rlas]) for i in rlf]
-		right = [''.join([x[i] for x in rr + rra + rrs + rras]) for i in rrf]
+		left = [x[i] for x in rl + rla + rls + rlas for i in rlf]
+		right = [x[i] for x in rr + rra + rrs + rras for i in rrf]
 		div = 15
 		mul = 10000
 	else:
 		assert(False)
 	if MODE is MODE_CODE:
 		all_letters = []
-		for c in set(''.join(left + right)):
-			all_letters += [c] * (math.ceil(weight_code[c] * mul))
+		for c in set(''.join(left + right)): # get rid of empty string
+			all_letters += [c] * math.ceil(weight_code[c] * mul)
 	for _ in range(NUM_SEQS):
 		if MODE is MODE_CODE:
 			letters = get_keys_random(all_letters)
