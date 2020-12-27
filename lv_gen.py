@@ -8,7 +8,7 @@ NUM_SEQS = 4
 # T(231)
 MODES = ['random', 'text', 'doc', 'code']
 MODE_RANDOM, MODE_TEXT, MODE_DOC, MODE_CODE = MODES
-MODE = MODE_CODE
+MODE = MODE_RANDOM
 
 ROW_HOME = [['a', 's', 'd', 't',   ' '], ['n', 'e', 'i', 'o', 'p']]
 ROW_UP = [['q', 'w', 'f', 'rkg', ''], ['bm', 'yhj', '8', '9', '0-=']]
